@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>الشركة الدوائية الحديثة | نظام الدكتور بسام العامري - الإصدار الذهبي</title>
-    
-    <!-- PWA Manifest لتحويل الموقع إلى تطبيق ويب تقدمي -->
+    <link rel="manifest" href="manifest.json">
+    <!-- PWA Manifest -->
     <link rel="manifest" href="data:application/manifest+json,{
         \"name\": \"الشركة الدوائية الحديثة - د. بسام العامري\",
         \"short_name\": \"نظام الصيدلة\",
         \"description\": \"نظام إدارة الصيدلية الذهبي\",
-        \"start_url\": \".\",
+        \"start_url\": \"/\",
         \"display\": \"standalone\",
-        \"theme_color\": \"#000000\",
+        \"theme_color\": \"#d4af37\",
         \"background_color\": \"#010101\",
+        \"orientation\": \"portrait\",
         \"icons\": [
             {
                 \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23d4af37;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23b8860b;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23grad)'/%3E%3Cpath fill='white' d='M50 20 L55 35 L70 35 L58 45 L63 60 L50 50 L37 60 L42 45 L30 35 L45 35 Z'/%3E%3Cpath fill='white' d='M50 70 L47 80 L53 80 Z'/%3E%3C/svg%3E\",
@@ -23,16 +24,50 @@
         ]
     }">
     
-    <!-- Service Worker -->
+    <!-- Service Worker محسن -->
     <script>
         if ('serviceWorker' in navigator) {
-            const swCode = `self.addEventListener('fetch', event => { event.respondWith(fetch(event.request)); });`;
-            const blob = new Blob([swCode], {type: 'application/javascript'});
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl);
+            window.addEventListener('load', function() {
+                const swCode = `const CACHE_NAME = 'pharma-system-v3';
+const urlsToCache = ['/', '/index.html'];
+self.addEventListener('install', function(event) {
+    event.waitUntil(caches.open(CACHE_NAME).then(function(cache) {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+    }));
+    self.skipWaiting();
+});
+self.addEventListener('fetch', function(event) {
+    event.respondWith(caches.match(event.request).then(function(response) {
+        if (response) {
+            return response;
+        }
+        return fetch(event.request);
+    }));
+});`;
+                const blob = new Blob([swCode], {type: 'application/javascript'});
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).then(function(registration) {
+                    console.log('ServiceWorker registration successful');
+                }).catch(function(error) {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+            });
         }
     </script>
-    
+    <!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('✅ Service Worker Registered - د. بسام'))
+        .catch(err => console.log('❌ Registration Failed', err));
+    });
+  }
+</script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -225,6 +260,8 @@
         .install-banner { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #d4af37, #b8860b); color: #000; padding: 12px 24px; border-radius: 60px; font-weight: bold; z-index: 2000; gap: 10px; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(0,0,0,0.5); animation: float 2s infinite; }
         .install-banner i { font-size: 24px; }
         @media (display-mode: standalone) { .install-banner { display: none !important; } }
+        .manual-install-btn { background: linear-gradient(135deg, #d4af37, #b8860c); border: none; color: #000; padding: 10px 20px; border-radius: 40px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: all 0.3s ease; }
+        .manual-install-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(212, 175, 55, 0.5); }
     </style>
 </head>
 <body>
@@ -271,6 +308,7 @@
         <button class="theme-btn" onclick="setTheme('default')"><i class="fas fa-sun"></i> طبيعي</button>
         <button class="theme-btn" onclick="setTheme('light')"><i class="fas fa-sun"></i> نهاري</button>
         <button class="theme-btn" onclick="setTheme('dark')"><i class="fas fa-moon"></i> ليلي</button>
+        <button class="manual-install-btn" id="manualInstallBtn"><i class="fas fa-download"></i> تثبيت التطبيق</button>
     </div>
     <div class="system-time-header" id="systemLiveTimeHeader"></div>
 
@@ -371,14 +409,44 @@
     function installApp() {
         if (deferredPrompt) {
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(() => {
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    showMsg('✅ تم تثبيت التطبيق بنجاح!');
+                }
                 deferredPrompt = null;
                 document.getElementById('installBanner').style.display = 'none';
             });
         } else {
-            showMsg('⚠️ يمكنك تثبيت التطبيق من قائمة المتصفح (النقاط الثلاث ➕ إضافة إلى الشاشة الرئيسية)', 'info');
+            showManualInstallInstructions();
         }
     }
+    
+    function showManualInstallInstructions() {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isAndroid = /Android/.test(navigator.userAgent);
+        
+        if (isIOS) {
+            showMsg('📱 لتثبيت التطبيق: اضغط على زر المشاركة ⬆️ ثم اختر "إضافة إلى الشاشة الرئيسية"', 'info');
+        } else if (isAndroid) {
+            showMsg('📱 لتثبيت التطبيق: اضغط على القائمة (⋮) ثم اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"', 'info');
+        } else {
+            showMsg('📱 لتثبيت التطبيق: استخدم خيار "تثبيت" أو "إضافة إلى الشاشة الرئيسية" من قائمة المتصفح', 'info');
+        }
+    }
+    
+    document.getElementById('manualInstallBtn').addEventListener('click', function() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    showMsg('✅ تم تثبيت التطبيق بنجاح!');
+                }
+                deferredPrompt = null;
+            });
+        } else {
+            showManualInstallInstructions();
+        }
+    });
     
     if (window.matchMedia('(display-mode: standalone)').matches) {
         document.getElementById('installBanner').style.display = 'none';
@@ -537,7 +605,6 @@
     async function exportReportToPDF() { const reportContent = document.getElementById('reportData').innerHTML; if (!reportContent || reportContent.includes('لا توجد')) { showMsg('⚠️ لا توجد بيانات للتصدير', 'error'); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); doc.setFont('helvetica'); doc.setFontSize(18); const title = document.getElementById('modalTitle').innerText.replace(/[^\u0600-\u06FF\s]/g, ''); doc.text(title, 105, 20, { align: 'center' }); doc.setFontSize(10); doc.text(`تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}`, 105, 28, { align: 'center' }); const elements = document.querySelectorAll('#reportData .statement-row, #reportData .customer-total-row, #reportData .grand-total-summary, #reportData .stats-card, #reportData .detailed-invoice-row, #reportData .customer-grand-total'); let yPos = 40; for (let element of elements) { const text = element.innerText; if (yPos > 270) { doc.addPage(); yPos = 20; } doc.setFontSize(10); const lines = doc.splitTextToSize(text, 170); doc.text(lines, 15, yPos); yPos += (lines.length * 6) + 4; } doc.save(`تقرير_${title}_${new Date().toISOString().slice(0,10)}.pdf`); showMsg('📄 تم تصدير التقرير كـ PDF بنجاح', 'success'); }
     function exportReportToExcel() { const reportContent = document.getElementById('reportData').innerHTML; if (!reportContent || reportContent.includes('لا توجد')) { showMsg('⚠️ لا توجد بيانات للتصدير', 'error'); return; } const tempDiv = document.createElement('div'); tempDiv.innerHTML = reportContent; const data = []; const title = document.getElementById('modalTitle').innerText; data.push([title]); data.push([`تاريخ التصدير: ${new Date().toLocaleDateString('ar-EG')}`]); data.push([]); const rows = tempDiv.querySelectorAll('.statement-row, .customer-total-row, .grand-total-summary, .stats-rank, .detailed-invoice-row, .customer-grand-total'); rows.forEach(row => { const text = row.innerText.trim(); if (text) data.push([text]); }); const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'التقرير'); XLSX.writeFile(wb, `تقرير_${title}_${new Date().toISOString().slice(0,10)}.xlsx`); showMsg('📊 تم تصدير التقرير كـ Excel بنجاح', 'success'); }
     
-    // ========== حفظ الفاتورة ==========
     async function confirmSave() {
         if (!pendingSaveData) return;
         showMsg('💾 جاري الحفظ...', 'info');
@@ -563,13 +630,34 @@
         if (res && res.success) {
             showMsg('✅ تم حفظ الفاتورة بنجاح 🎉', 'success');
             closePreview();
-            setTimeout(() => location.reload(), 1500);
+            resetInvoiceForm();
         } else {
             showMsg('❌ فشل الحفظ: ' + (res?.error || 'خطأ غير معروف'), 'error');
         }
     }
     
-    // ========== البحث في ورقة المبيعات مع إجمالي جميع الفواتير للعميل ==========
+    function resetInvoiceForm() {
+        const itemsContainer = document.getElementById('itemsContainer');
+        itemsContainer.innerHTML = '';
+        addItemRow();
+        document.getElementById('grandTotal').innerHTML = '0 <i class="fas fa-coins"></i> ريال';
+        
+        if (currentMode === 'sale') {
+            const personSelect = document.getElementById('personSelect');
+            if (personSelect && personSelect.options.length > 0) {
+                personSelect.selectedIndex = 0;
+            }
+        }
+        
+        const searchInput = document.getElementById('searchItemInput');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        pendingSaveData = null;
+        showMsg('✅ تم حفظ الفاتورة! النموذج جاهز لفاتورة جديدة', 'success');
+    }
+    
     async function searchCustomerByName() {
         const customerName = prompt("📝 أدخل اسم العميل الذي تريد البحث عن فواتيره:");
         
@@ -726,7 +814,6 @@
                 `;
             });
             
-            // إضافة إجمالي جميع فواتير العميل بشكل مميز
             container.innerHTML += `
                 <div class="customer-grand-total">
                     <i class="fas fa-chart-line"></i>
@@ -737,7 +824,6 @@
                 </div>
             `;
             
-            // إضافة إجمالي آخر بنمط مختلف في الأسفل
             container.innerHTML += `
                 <div class="grand-total-summary" style="margin-top: 15px; background: linear-gradient(135deg, rgba(255,215,0,0.4), rgba(255,180,0,0.3));">
                     <span><i class="fas fa-chart-line"></i> 🏆 إجمالي مشتريات العميل "${searchName}"</span>
@@ -749,7 +835,6 @@
         document.getElementById('reportModal').style.display = 'flex';
     }
     
-    // ========== الإحصائيات المتقدمة للمبيعات ==========
     async function getAdvancedStatsFromSheet() {
         const salesData = await callAPI('getAllSalesInvoices');
         if (!Array.isArray(salesData)) return { customersByAmount: [], customersByCount: [], itemsByQuantity: [], itemsByFrequency: [] };
@@ -822,7 +907,6 @@
         return { customersByAmount, customersByCount, itemsByQuantity, itemsByFrequency };
     }
     
-    // ========== الإحصائيات المتقدمة للمشتريات ==========
     async function getPurchaseAdvancedStats() {
         const purchaseData = await callAPI('getAllPurchaseInvoices');
         if (!Array.isArray(purchaseData)) return { suppliersByAmount: [], itemsByQuantity: [], itemsByFrequency: [], totalPurchases: 0 };
@@ -900,7 +984,6 @@
         return { suppliersByAmount, itemsByQuantity, itemsByFrequency, totalPurchases: totalPurchasesAmount };
     }
     
-    // ========== عرض الإحصائيات المتقدمة للمبيعات ==========
     async function showAdvancedStats() {
         showMsg('🏆 جلب إحصائيات المبيعات المتقدمة...', 'info');
         const stats = await getAdvancedStatsFromSheet();
@@ -991,7 +1074,6 @@
         document.getElementById('reportModal').style.display = 'flex';
     }
     
-    // ========== عرض الإحصائيات المتقدمة للمشتريات ==========
     async function showPurchaseAdvancedStats() {
         showMsg('📊 جلب إحصائيات المشتريات المتقدمة...', 'info');
         const stats = await getPurchaseAdvancedStats();
@@ -1077,7 +1159,6 @@
         document.getElementById('reportModal').style.display = 'flex';
     }
     
-    // ========== إجمالي فواتير جميع العملاء ==========
     async function showAllCustomersTotal() {
         showMsg('📊 جلب إجمالي فواتير العملاء...', 'info');
         const stats = await getAdvancedStatsFromSheet();
@@ -1117,7 +1198,6 @@
         document.getElementById('reportModal').style.display = 'flex';
     }
     
-    // ========== إحصائيات المبيعات والمشتريات حسب الصنف ==========
     async function fetchStats(action) {
         showMsg('📊 جلب الإحصائيات...', 'info');
         const res = await callAPI(action);
@@ -1133,7 +1213,6 @@
         } else { showMsg('لا توجد إحصائيات متاحة', 'error'); }
     }
     
-    // ========== عرض فواتير المشتريات للمورد ==========
     async function showSupplierStatement() {
         showMsg('📜 جلب سجل المشتريات...', 'info');
         const buys = await callAPI('getAllPurchaseInvoices');
