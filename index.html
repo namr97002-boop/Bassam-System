@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>الشركة الدوائية الحديثة | نظام الدكتور بسام العامري - الإصدار الذهبي</title>
-    <link rel="manifest" href="manifest.json">
-    <!-- PWA Manifest -->
-    <!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="نظام بسام">
+<link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/pharmacy.png">
 
-<!-- Service Worker خارجي -->
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -18,19 +18,6 @@
                 .catch(err => console.log('❌ Registration Failed', err));
         });
     }
-</script>
-    <!-- PWA Manifest -->
-<link rel="manifest" href="manifest.json">
-
-<!-- Service Worker -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('✅ Service Worker Registered - د. بسام'))
-        .catch(err => console.log('❌ Registration Failed', err));
-    });
-  }
 </script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1226,7 +1213,36 @@
     function showMsg(m, type) { const b = document.getElementById('alertBox'); b.innerText = m; b.style.display = 'block'; b.style.background = type === 'success' ? 'linear-gradient(135deg, #d4af37, #b8860b)' : (type === 'error' ? '#ef4444dd' : 'linear-gradient(135deg, #2a2550, #1a1a3a)'); setTimeout(() => b.style.display = 'none', 3200); }
     
     function initLogout() { const logoutBtn = document.getElementById('logoutMainBtn'); if (logoutBtn) { logoutBtn.addEventListener('click', () => { if (window.speechSynthesis) { const byeMsg = new SpeechSynthesisUtterance("تم الخروج من النظام، مع السلامة دكتور بسام."); byeMsg.lang = "ar-SA"; window.speechSynthesis.speak(byeMsg); } document.body.classList.remove('access-granted'); const codeInput = document.getElementById('entryCode'); if (codeInput) codeInput.value = ""; setTimeout(() => codeInput?.focus(), 200); }); } }
+    // ========== إخفاء أزرار التثبيت بعد تثبيت التطبيق ==========
+function checkIfInstalled() {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.navigator.standalone === true;
     
+    const installBanner = document.getElementById('installBanner');
+    const manualInstallBtn = document.getElementById('manualInstallBtn');
+    
+    if (isStandalone) {
+        if (installBanner) installBanner.style.display = 'none';
+        if (manualInstallBtn) manualInstallBtn.style.display = 'none';
+        console.log('✅ تم إخفاء أزرار التثبيت - التطبيق يعمل من الشاشة الرئيسية');
+    }
+}
+
+// مراقبة تغيير وضع العرض
+const displayModeMonitor = window.matchMedia('(display-mode: standalone)');
+displayModeMonitor.addEventListener('change', function(e) {
+    if (e.matches) {
+        const installBanner = document.getElementById('installBanner');
+        const manualInstallBtn = document.getElementById('manualInstallBtn');
+        if (installBanner) installBanner.style.display = 'none';
+        if (manualInstallBtn) manualInstallBtn.style.display = 'none';
+    }
+});
+
+// استدعاء عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', checkIfInstalled);
+
+window.onload = () => { updateDateTime(); setInterval(() => { updateDateTime(); }, 1000); initLoginSystem(); initLogout(); };
     window.onload = () => { updateDateTime(); setInterval(() => { updateDateTime(); }, 1000); initLoginSystem(); initLogout(); };
 </script>
 </body>
