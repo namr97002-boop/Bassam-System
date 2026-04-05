@@ -1,10 +1,15 @@
-const CACHE_NAME = 'dr-bassam-pharma-v4';
-const urlsToCache = ['.', './', './index.html'];
+const CACHE_NAME = 'pharma-system-v5';
+const urlsToCache = [
+  '.',
+  './',
+  './index.html',
+  './manifest.json'
+];
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
-      console.log('✅ تم التخزين - د. بسام');
+      console.log('✅ تم التخزين المؤقت - نظام الدكتور بسام');
       return cache.addAll(urlsToCache);
     })
   );
@@ -28,6 +33,7 @@ self.addEventListener('activate', function(event) {
       return Promise.all(
         cacheNames.map(function(cacheName) {
           if (cacheName !== CACHE_NAME) {
+            console.log('🗑️ حذف الكاش القديم:', cacheName);
             return caches.delete(cacheName);
           }
         })

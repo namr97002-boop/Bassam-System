@@ -6,55 +6,19 @@
     <title>الشركة الدوائية الحديثة | نظام الدكتور بسام العامري - الإصدار الذهبي</title>
     <link rel="manifest" href="manifest.json">
     <!-- PWA Manifest -->
-    <link rel="manifest" href="data:application/manifest+json,{
-        \"name\": \"الشركة الدوائية الحديثة - د. بسام العامري\",
-        \"short_name\": \"نظام الصيدلة\",
-        \"description\": \"نظام إدارة الصيدلية الذهبي\",
-        \"start_url\": \"/\",
-        \"display\": \"standalone\",
-        \"theme_color\": \"#d4af37\",
-        \"background_color\": \"#010101\",
-        \"orientation\": \"portrait\",
-        \"icons\": [
-            {
-                \"src\": \"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23d4af37;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23b8860b;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23grad)'/%3E%3Cpath fill='white' d='M50 20 L55 35 L70 35 L58 45 L63 60 L50 50 L37 60 L42 45 L30 35 L45 35 Z'/%3E%3Cpath fill='white' d='M50 70 L47 80 L53 80 Z'/%3E%3C/svg%3E\",
-                \"sizes\": \"512x512\",
-                \"type\": \"image/svg+xml\"
-            }
-        ]
-    }">
-    
-    <!-- Service Worker محسن -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                const swCode = `const CACHE_NAME = 'pharma-system-v3';
-const urlsToCache = ['/', '/index.html'];
-self.addEventListener('install', function(event) {
-    event.waitUntil(caches.open(CACHE_NAME).then(function(cache) {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-    }));
-    self.skipWaiting();
-});
-self.addEventListener('fetch', function(event) {
-    event.respondWith(caches.match(event.request).then(function(response) {
-        if (response) {
-            return response;
-        }
-        return fetch(event.request);
-    }));
-});`;
-                const blob = new Blob([swCode], {type: 'application/javascript'});
-                const swUrl = URL.createObjectURL(blob);
-                navigator.serviceWorker.register(swUrl).then(function(registration) {
-                    console.log('ServiceWorker registration successful');
-                }).catch(function(error) {
-                    console.log('ServiceWorker registration failed: ', error);
-                });
-            });
-        }
-    </script>
+    <!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Service Worker خارجي -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('✅ Service Worker Registered - د. بسام'))
+                .catch(err => console.log('❌ Registration Failed', err));
+        });
+    }
+</script>
     <!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
 
